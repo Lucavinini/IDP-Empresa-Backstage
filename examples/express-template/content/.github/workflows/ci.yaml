@@ -1,0 +1,25 @@
+name: CI (Tests & Build)
+
+on: [push, pull_request]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Baixar código
+        uses: actions/checkout@v3
+
+      - name: 2. Instalar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 3. Instalar Dependências
+        run: npm install
+
+      - name: 4. Rodar Testes (Jest)
+        run: npm test
+
+      - name: 5. Verificar Build do Docker
+        run: docker build . --file Dockerfile --tag test-build
