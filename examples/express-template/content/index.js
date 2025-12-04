@@ -13,6 +13,10 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-app.listen(port, () => {
+if(require.main === module){
+  app.listen(port, () => {
   console.log(`Servidor ouvindo a porta: ${port}`);
 });
+}
+
+module.exports = app;
