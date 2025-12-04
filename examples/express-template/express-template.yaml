@@ -1,0 +1,87 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: express-microservice-template
+  title: Express Microservice
+  description: Cria um microsserviço Express com /health e Dockerfile
+  tags:
+    - express
+    - nodejs
+    - docker
+spec:
+  owner: user:guest
+  type: service
+
+  parameters:
+    - title: Detalhes do Serviço
+      required:
+        - name
+        - description
+        - owner
+      properties:
+        name:
+          title: Nome do Serviço
+          type: string
+          description: 'Nome único do componente (ex: order-service)'
+          ui:autofocus: true
+        description:
+          title: Descrição
+          type: string
+          description: O que este serviço faz?
+        owner:
+          title: Dono (Owner)
+          type: string
+          description: Quem é o responsável (user ou group)
+          default: user:guest
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - User
+              - Group
+
+    - title: Localização do Repositório
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Local do Repositório
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    - id: fetch-base
+      name: Gerar Código Base
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+
+    - id: publish
+      name: Publicar no GitHub
+      action: publish:github
+      input:
+        description: ${{ parameters.description }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: 'main'
+        repoVisibility: public
+
+    - id: register
+      name: Registrar no Catálogo
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repositório
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Abrir no Catálogo
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
